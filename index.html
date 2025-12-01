@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS2 Stats Tracker</title>
+    <style>
+        :root {
+            --color-white: rgba(255, 255, 255, 1);
+            --color-cream-50: rgba(252, 252, 249, 1);
+            --color-cream-100: rgba(255, 255, 253, 1);
+            --color-gray-200: rgba(245, 245, 245, 1);
+            --color-gray-300: rgba(167, 169, 169, 1);
+            --color-slate-900: rgba(19, 52, 59, 1);
+            --color-teal-500: rgba(33, 128, 141, 1);
+            --color-teal-600: rgba(29, 116, 128, 1);
+            --color-red-500: rgba(192, 21, 47, 1);
+            
+            --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --font-size-base: 14px;
+            --font-size-lg: 16px;
+            --font-size-xl: 18px;
+            --font-size-2xl: 20px;
+            --space-8: 8px;
+            --space-12: 12px;
+            --space-16: 16px;
+            --space-20: 20px;
+            --space-32: 32px;
+            --radius-base: 8px;
+            --radius-lg: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: var(--space-20);
+            font-family: var(--font-family-base);
+            background: linear-gradient(135deg, #1a1f2e 0%, #0f1419 100%);
+            min-height: 100vh;
+            color: var(--color-white);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: var(--space-32);
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            color: var(--color-teal-500);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-12);
+        }
+
+        .input-section {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(33, 128, 141, 0.2);
+            border-radius: var(--radius-lg);
+            padding: var(--space-20);
+            margin-bottom: var(--space-32);
+            backdrop-filter: blur(10px);
+        }
+
+        .input-group {
+            display: flex;
+            gap: var(--space-12);
+            flex-wrap: wrap;
+        }
+
+        input {
+            flex: 1;
+            min-width: 200px;
+            padding: var(--space-12);
+            border: 1px solid rgba(33, 128, 141, 0.3);
+            border-radius: var(--radius-base);
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--color-white);
+            font-size: var(--font-size-base);
+            transition: border-color 150ms ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--color-teal-500);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        button {
+            padding: var(--space-12) var(--space-20);
+            background: var(--color-teal-500);
+            color: var(--color-white);
+            border: none;
+            border-radius: var(--radius-base);
+            font-size: var(--font-size-base);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 150ms ease;
+            white-space: nowrap;
+        }
+
+        button:hover {
+            background: var(--color-teal-600);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(33, 128, 141, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: rgba(33, 128, 141, 0.3);
+            border: 1px solid var(--color-teal-500);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(33, 128, 141, 0.4);
+        }
+
+        .loading {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: var(--color-white);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: rgba(192, 21, 47, 0.1);
+            border: 1px solid rgba(192, 21, 47, 0.3);
+            color: #ff6b7a;
+            padding: var(--space-16);
+            border-radius: var(--radius-base);
+            margin-bottom: var(--space-20);
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+            animation: slideIn 300ms ease;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-16);
+            margin-bottom: var(--space-32);
+        }
+
+        .stat-card {
+            background: rgba(33, 128, 141, 0.1);
+            border: 1px solid rgba(33, 128, 141, 0.2);
+            border-radius: var(--radius-lg);
+            padding: var(--space-16);
+            text-align: center;
+            backdrop-filter: blur(10px);
+            transition: all 150ms ease;
+        }
+
+        .stat-card:hover {
+            border-color: var(--color-teal-500);
+            background: rgba(33, 128, 141, 0.15);
+            transform: translateY(-4px);
+        }
+
+        .stat-label {
+            font-size: var(--font-size-base);
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: var(--space-8);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-size: var(--font-size-2xl);
+            font-weight: 700;
+            color: var(--color-teal-500);
+        }
+
+        .weapons-section {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(33, 128, 141, 0.2);
+            border-radius: var(--radius-lg);
+            padding: var(--space-20);
+            backdrop-filter: blur(10px);
+        }
+
+        .weapons-section h2 {
+            margin: 0 0 var(--space-16) 0;
+            font-size: var(--font-size-xl);
+            color: var(--color-teal-500);
+        }
+
+        .weapons-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: var(--space-12);
+        }
+
+        .weapon {
+            background: rgba(33, 128, 141, 0.1);
+            border: 1px solid rgba(33, 128, 141, 0.2);
+            padding: var(--space-12);
+            border-radius: var(--radius-base);
+            text-align: center;
+        }
+
+        .weapon-name {
+            font-weight: 600;
+            margin-bottom: var(--space-8);
+            color: var(--color-white);
+        }
+
+        .weapon-stat {
+            font-size: var(--font-size-base);
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .info-text {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: var(--font-size-base);
+            margin-top: var(--space-16);
+            text-align: center;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .input-group {
+                flex-direction: column;
+            }
+
+            input {
+                min-width: auto;
+            }
+
+            button {
+                width: 100%;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎮 CS2 Stats Tracker</h1>
+        </div>
+
+        <div class="input-section">
+            <div class="error" id="error"></div>
+            <div class="input-group">
+                <input 
+                    type="text" 
+                    id="steamId" 
+                    placeholder="Entrez votre Steam ID (ex: 76561198875082603)"
+                >
+                <button id="searchBtn">Charger Stats</button>
+                <button id="steamLoginBtn" class="btn-secondary">🔗 Connecter Steam</button>
+            </div>
+            <p class="info-text">📝 Vous avez besoin de votre Steam ID? Visitez <strong>steamid.xyz</strong> pour le trouver</p>
+        </div>
+
+        <div id="statsContainer" style="display: none;">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Kills</div>
+                    <div class="stat-value" id="kills">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Deaths</div>
+                    <div class="stat-value" id="deaths">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">K/D Ratio</div>
+                    <div class="stat-value" id="kdRatio">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Headshots</div>
+                    <div class="stat-value" id="headshots">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Parties Gagnées</div>
+                    <div class="stat-value" id="wins">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Temps Joué</div>
+                    <div class="stat-value" id="timePlayed">-</div>
+                </div>
+            </div>
+
+            <div class="weapons-section">
+                <h2>🔫 Armes Principales</h2>
+                <div class="weapons-list" id="weaponsList"></div>
+            </div>
+
+            <div class="info-text" style="margin-top: var(--space-32);">
+                ℹ️ Les données proviennent de l'API Steam. Les stats peuvent être mises à jour toutes les 24h.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const steamIdInput = document.getElementById('steamId');
+        const searchBtn = document.getElementById('searchBtn');
+        const errorDiv = document.getElementById('error');
+        const statsContainer = document.getElementById('statsContainer');
+
+        const STEAM_API_KEY = 'YOUR_API_KEY_HERE'; // À remplacer par une vraie clé API Steam
+        const RETURN_URL = window.location.href;
+
+        function showError(message) {
+            errorDiv.textContent = message;
+            errorDiv.classList.add('show');
+            setTimeout(() => errorDiv.classList.remove('show'), 5000);
+        }
+
+        function formatTime(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            return hours + 'h';
+        }
+
+        async function fetchStats() {
+            const steamId = steamIdInput.value.trim();
+            
+            if (!steamId) {
+                showError('Veuillez entrer votre Steam ID');
+                return;
+            }
+
+            if (STEAM_API_KEY === 'YOUR_API_KEY_HERE') {
+                // Mode démo avec données mockées
+                displayDemoStats(steamId);
+                return;
+            }
+
+            searchBtn.disabled = true;
+            const originalText = searchBtn.textContent;
+            searchBtn.innerHTML = '<span class="loading"></span> Chargement...';
+
+            try {
+                const url = `https://api.steampowered.com/ISteamUserStats/GetUserStatsForGame/v2/?appid=730&key=${STEAM_API_KEY}&steamid=${steamId}`;
+                
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Steam ID invalide ou stats non disponibles');
+
+                const data = await response.json();
+                
+                if (!data.playerstats) {
+                    throw new Error('Aucune stat trouvée pour ce Steam ID');
+                }
+
+                displayStats(data.playerstats.stats);
+            } catch (error) {
+                showError(error.message);
+                statsContainer.style.display = 'none';
+            } finally {
+                searchBtn.disabled = false;
+                searchBtn.textContent = originalText;
+            }
+        }
+
+        function displayDemoStats(steamId) {
+            // Données de démonstration
+            const demoData = [
+                { name: 'total_kills', value: 12547 },
+                { name: 'total_deaths', value: 4230 },
+                { name: 'total_kills_headshot', value: 3847 },
+                { name: 'total_wins', value: 892 },
+                { name: 'total_time_played', value: 876543 },
+                { name: 'total_kills_ak47', value: 3421 },
+                { name: 'total_kills_m4a1', value: 2156 },
+                { name: 'total_kills_awp', value: 1234 },
+                { name: 'total_kills_deagle', value: 876 },
+                { name: 'total_kills_knife', value: 89 }
+            ];
+
+            displayStats(demoData);
+        }
+
+        function displayStats(stats) {
+            const statMap = {};
+            stats.forEach(stat => {
+                statMap[stat.name] = stat.value;
+            });
+
+            const kills = statMap['total_kills'] || 0;
+            const deaths = statMap['total_deaths'] || 0;
+            const headshots = statMap['total_kills_headshot'] || 0;
+            const wins = statMap['total_wins'] || 0;
+            const timePlayed = statMap['total_time_played'] || 0;
+
+            const kdRatio = deaths > 0 ? (kills / deaths).toFixed(2) : kills;
+
+            document.getElementById('kills').textContent = kills.toLocaleString();
+            document.getElementById('deaths').textContent = deaths.toLocaleString();
+            document.getElementById('kdRatio').textContent = kdRatio;
+            document.getElementById('headshots').textContent = headshots.toLocaleString();
+            document.getElementById('wins').textContent = wins.toLocaleString();
+            document.getElementById('timePlayed').textContent = formatTime(timePlayed);
+
+            // Armes principales
+            const weapons = [
+                { name: 'AK-47', key: 'total_kills_ak47' },
+                { name: 'M4A1', key: 'total_kills_m4a1' },
+                { name: 'AWP', key: 'total_kills_awp' },
+                { name: 'Deagle', key: 'total_kills_deagle' },
+                { name: 'Knife', key: 'total_kills_knife' }
+            ];
+
+            const weaponsList = document.getElementById('weaponsList');
+            weaponsList.innerHTML = '';
+
+            weapons.forEach(weapon => {
+                const count = statMap[weapon.key] || 0;
+                const div = document.createElement('div');
+                div.className = 'weapon';
+                div.innerHTML = `
+                    <div class="weapon-name">${weapon.name}</div>
+                    <div class="weapon-stat">${count.toLocaleString()} kills</div>
+                `;
+                weaponsList.appendChild(div);
+            });
+
+            statsContainer.style.display = 'block';
+        }
+
+        function connectSteam() {
+            // OpenID login URL pour Steam
+            const steamOpenIdUrl = `https://steamcommunity.com/openid/login?openid.ns=http://specs.openid.net/auth/2.0&openid.identity=http://specs.openid.net/auth/2.0/identifier_select&openid.claimed_id=http://specs.openid.net/auth/2.0/identifier_select&openid.mode=checkid_setup&openid.return_to=${encodeURIComponent(RETURN_URL)}&openid.realm=${encodeURIComponent(window.location.origin)}&openid.assoc_handle={HMAC-SHA1}{673a5a73}{0iBqiw==}`;
+            
+            // Alternative: Utiliser une URL personnalisée pour traiter l'authentification
+            const authUrl = `https://steamcommunity.com/openid/login?openid.ns=http://specs.openid.net/auth/2.0&openid.identity=http://specs.openid.net/auth/2.0/identifier_select&openid.claimed_id=http://specs.openid.net/auth/2.0/identifier_select&openid.mode=checkid_setup&openid.return_to=${encodeURIComponent(RETURN_URL + '?steam_auth=1')}&openid.realm=${encodeURIComponent(window.location.origin)}`;
+            
+            window.location.href = authUrl;
+        }
+
+        // Vérifie si on revient d'une authentification Steam
+        function checkSteamAuth() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('openid.identity')) {
+                // Extraire le Steam ID de l'URL de retour
+                const identity = params.get('openid.identity');
+                const steamIdMatch = identity.match(/(\d+)$/);
+                if (steamIdMatch) {
+                    steamIdInput.value = steamIdMatch[1];
+                    fetchStats();
+                    // Nettoyer l'URL
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+            }
+        }
+
+        searchBtn.addEventListener('click', fetchStats);
+        steamIdInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') fetchStats();
+        });
+
+        document.getElementById('steamLoginBtn').addEventListener('click', connectSteam);
+
+        // Vérifier l'authentification au chargement
+        checkSteamAuth();
+    </script>
+</body>
+</html>
